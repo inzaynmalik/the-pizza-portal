@@ -1,11 +1,10 @@
-
-import React from 'react';
-import { Link, useNavigate } from 'react-router-dom';
-import { useAuth } from '../contexts/AuthContext';
-import { useCart } from '../contexts/CartContext';
-import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
-import { ShoppingCart, User, LogOut, Settings } from 'lucide-react';
+import React from "react";
+import { Link, useNavigate } from "react-router-dom";
+import { useAuth } from "../contexts/AuthContext";
+import { useCart } from "../contexts/CartContext";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { ShoppingCart, User, LogOut, Settings } from "lucide-react";
 
 const Navbar = () => {
   const { user, logout, isAdmin } = useAuth();
@@ -14,7 +13,7 @@ const Navbar = () => {
 
   const handleLogout = () => {
     logout();
-    navigate('/');
+    navigate("/");
   };
 
   return (
@@ -31,16 +30,25 @@ const Navbar = () => {
 
           {/* Navigation Links */}
           <div className="hidden md:flex items-center space-x-8">
-            <Link to="/" className="text-gray-700 hover:text-red-500 transition-colors">
+            <Link
+              to="/"
+              className="text-gray-700 hover:text-red-500 transition-colors"
+            >
               Home
             </Link>
             {user && (
-              <Link to="/orders" className="text-gray-700 hover:text-red-500 transition-colors">
+              <Link
+                to="/orders"
+                className="text-gray-700 hover:text-red-500 transition-colors"
+              >
                 My Orders
               </Link>
             )}
             {isAdmin && (
-              <Link to="/admin" className="text-gray-700 hover:text-red-500 transition-colors">
+              <Link
+                to="/admin"
+                className="text-gray-700 hover:text-red-500 transition-colors"
+              >
                 Admin
               </Link>
             )}
@@ -63,9 +71,6 @@ const Navbar = () => {
             {/* User actions */}
             {user ? (
               <div className="flex items-center space-x-2">
-                <span className="text-sm text-gray-700 hidden sm:block">
-                  Hello, {user.name}
-                </span>
                 <Button variant="ghost" size="sm" onClick={handleLogout}>
                   <LogOut className="h-4 w-4 mr-1" />
                   Logout

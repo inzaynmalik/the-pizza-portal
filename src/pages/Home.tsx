@@ -1,30 +1,40 @@
-
-import React, { useState, useEffect } from 'react';
-import { pizzaAPI } from '../services/api';
-import PizzaCard from '../components/PizzaCard';
-import { Input } from '@/components/ui/input';
-import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
-import { Search, Filter } from 'lucide-react';
-import { toast } from 'sonner';
+import React, { useState, useEffect } from "react";
+import { pizzaAPI } from "../services/api";
+import PizzaCard from "../components/PizzaCard";
+import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { Search, Filter } from "lucide-react";
+import { toast } from "sonner";
 
 interface Pizza {
-  id: string;
+  id: number;
   name: string;
   price: number;
   image: string;
   description: string;
-  category?: string;
+  category: "vegetarian" | "non-vegetarian";
+  isVeg: boolean;
+  toppings: string[];
+  spiceLevel: "mild" | "medium" | "hot";
+}
+
+interface PizzaFilters {
+  availableCategories: string[];
+  availableSpiceLevels: string[];
+  priceRange: {
+    min: number;
+    max: number;
+  };
 }
 
 const Home = () => {
   const [pizzas, setPizzas] = useState<Pizza[]>([]);
   const [filteredPizzas, setFilteredPizzas] = useState<Pizza[]>([]);
-  const [searchTerm, setSearchTerm] = useState('');
-  const [selectedCategory, setSelectedCategory] = useState<string>('all');
+  const [searchTerm, setSearchTerm] = useState("");
+  const [selectedCategory, setSelectedCategory] = useState<string>("all");
   const [loading, setLoading] = useState(true);
-
-  const categories = ['all', 'classic', 'premium', 'vegetarian', 'meat lovers'];
+  const [categories, setCategories] = useState<string[]>(["all"]);
 
   useEffect(() => {
     fetchPizzas();
@@ -37,47 +47,80 @@ const Home = () => {
   const fetchPizzas = async () => {
     try {
       const response = await pizzaAPI.getAll();
-      setPizzas(response.data);
+      setPizzas(response.pizzas);
+      if (response.filters?.availableCategories) {
+        setCategories(["all", ...response.filters.availableCategories]);
+      }
       setLoading(false);
     } catch (error) {
-      console.error('Error fetching pizzas:', error);
-      toast.error('Failed to load pizzas');
+      console.error("Error fetching pizzas:", error);
+      toast.error("Failed to load pizzas");
       // For demo purposes, let's add some mock data
       const mockPizzas: Pizza[] = [
         {
-          id: '1',
-          name: 'Margherita',
+          id: 1,
+          name: "Margherita",
           price: 12.99,
-          image: '/placeholder.svg',
-          description: 'Fresh tomatoes, mozzarella cheese, and basil',
-          category: 'classic'
+          image: "/placeholder.svg",
+          description: "Fresh tomatoes, mozzarella cheese, and basil",
+          category: "vegetarian",
+          isVeg: true,
+          toppings: ["tomato sauce", "mozzarella", "basil"],
+          spiceLevel: "mild",
         },
         {
-          id: '2',
-          name: 'Pepperoni',
+          id: 2,
+          name: "Pepperoni",
           price: 15.49,
-          image: '/placeholder.svg',
-          description: 'Classic pepperoni with mozzarella cheese',
-          category: 'classic'
+          image: "/placeholder.svg",
+          description: "Classic pepperoni with mozzarella cheese",
+          category: "non-vegetarian",
+          isVeg: false,
+          toppings: ["tomato sauce", "mozzarella", "pepperoni"],
+          spiceLevel: "medium",
         },
         {
-          id: '3',
-          name: 'Supreme',
+          id: 3,
+          name: "Supreme",
           price: 18.99,
-          image: '/placeholder.svg',
-          description: 'Pepperoni, sausage, bell peppers, onions, and mushrooms',
-          category: 'premium'
+          image: "/placeholder.svg",
+          description:
+            "Pepperoni, sausage, bell peppers, onions, and mushrooms",
+          category: "non-vegetarian",
+          isVeg: false,
+          toppings: [
+            "tomato sauce",
+            "mozzarella",
+            "pepperoni",
+            "sausage",
+            "bell peppers",
+            "onions",
+            "mushrooms",
+          ],
+          spiceLevel: "hot",
         },
         {
-          id: '4',
-          name: 'Veggie Delight',
+          id: 4,
+          name: "Veggie Delight",
           price: 16.49,
-          image: '/placeholder.svg',
-          description: 'Bell peppers, mushrooms, onions, olives, and tomatoes',
-          category: 'vegetarian'
-        }
+          image: "/placeholder.svg",
+          description: "Bell peppers, mushrooms, onions, olives, and tomatoes",
+          category: "vegetarian",
+          isVeg: true,
+          toppings: [
+            "tomato sauce",
+            "mozzarella",
+            "bell peppers",
+            "mushrooms",
+            "onions",
+            "olives",
+            "tomatoes",
+          ],
+          spiceLevel: "mild",
+        },
       ];
       setPizzas(mockPizzas);
+      setCategories(["all", "vegetarian", "non-vegetarian"]);
       setLoading(false);
     }
   };
@@ -87,15 +130,18 @@ const Home = () => {
 
     // Filter by search term
     if (searchTerm) {
-      filtered = filtered.filter(pizza =>
-        pizza.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        pizza.description.toLowerCase().includes(searchTerm.toLowerCase())
+      filtered = filtered.filter(
+        (pizza) =>
+          pizza.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+          pizza.description.toLowerCase().includes(searchTerm.toLowerCase())
       );
     }
 
     // Filter by category
-    if (selectedCategory !== 'all') {
-      filtered = filtered.filter(pizza => pizza.category === selectedCategory);
+    if (selectedCategory !== "all") {
+      filtered = filtered.filter(
+        (pizza) => pizza.category === selectedCategory
+      );
     }
 
     setFilteredPizzas(filtered);
@@ -121,9 +167,13 @@ const Home = () => {
             Fresh. Hot. Delicious.
           </h1>
           <p className="text-xl md:text-2xl mb-8">
-            Order your favorite pizza and get it delivered in 30 minutes or less!
+            Order your favorite pizza and get it delivered in 30 minutes or
+            less!
           </p>
-          <Button size="lg" className="bg-white text-red-500 hover:bg-gray-100 text-lg px-8 py-3">
+          <Button
+            size="lg"
+            className="bg-white text-red-500 hover:bg-gray-100 text-lg px-8 py-3"
+          >
             Order Now
           </Button>
         </div>
@@ -143,16 +193,18 @@ const Home = () => {
                 className="pl-10"
               />
             </div>
-            
+
             <div className="flex gap-2 flex-wrap">
               {categories.map((category) => (
                 <Badge
                   key={category}
-                  variant={selectedCategory === category ? "default" : "outline"}
+                  variant={
+                    selectedCategory === category ? "default" : "outline"
+                  }
                   className={`cursor-pointer capitalize ${
-                    selectedCategory === category 
-                      ? 'bg-red-500 hover:bg-red-600' 
-                      : 'hover:bg-red-50 hover:text-red-500'
+                    selectedCategory === category
+                      ? "bg-red-500 hover:bg-red-600"
+                      : "hover:bg-red-50 hover:text-red-500"
                   }`}
                   onClick={() => setSelectedCategory(category)}
                 >
@@ -172,7 +224,9 @@ const Home = () => {
 
         {filteredPizzas.length === 0 && (
           <div className="text-center py-12">
-            <p className="text-gray-500 text-lg">No pizzas found matching your criteria.</p>
+            <p className="text-gray-500 text-lg">
+              No pizzas found matching your criteria.
+            </p>
           </div>
         )}
       </div>
