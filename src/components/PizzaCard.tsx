@@ -5,6 +5,32 @@ import { Badge } from "@/components/ui/badge";
 import { useCart } from "../contexts/CartContext";
 import { Plus, Flame } from "lucide-react";
 
+// Pizza image mapping
+const pizzaImages: { [key: string]: string } = {
+  "Mexican Green Wave": "/assets/Mexican Green Wave.webp",
+  "Veggie Supreme": "/assets/Veggie Supreme.jpeg",
+  "BBQ Chicken": "/assets/BBQ Chicken.jpeg",
+  Margherita: "/assets/Margherita.jpeg",
+  Pepperoni: "/assets/Pepperoni.jpeg",
+};
+
+// Default fallback image
+const defaultPizzaImage = "/assets/Margherita.jpeg";
+
+// Fallback images array
+const fallbackImages = [
+  "/assets/pizza.jpeg",
+  "/assets/pizza-1.jpeg",
+  "/assets/pizza-2.jpeg",
+  "/assets/pizza-3.jpeg",
+];
+
+// Get random fallback image
+const getRandomFallbackImage = () => {
+  const randomIndex = Math.floor(Math.random() * fallbackImages.length);
+  return fallbackImages[randomIndex];
+};
+
 interface Pizza {
   id: number;
   name: string;
@@ -23,6 +49,10 @@ interface PizzaCardProps {
 
 const PizzaCard = ({ pizza }: PizzaCardProps) => {
   const { addToCart } = useCart();
+
+  const getPizzaImage = (pizzaName: string) => {
+    return pizzaImages[pizzaName] || defaultPizzaImage;
+  };
 
   const handleAddToCart = () => {
     addToCart(pizza);
@@ -45,7 +75,7 @@ const PizzaCard = ({ pizza }: PizzaCardProps) => {
     <Card className="overflow-hidden hover:shadow-xl transition-all duration-300 hover:-translate-y-1">
       <div className="relative">
         <img
-          src={pizza.image || "/placeholder.svg"}
+          src={getPizzaImage(pizza.name)}
           alt={pizza.name}
           className="w-full h-48 object-cover"
         />
